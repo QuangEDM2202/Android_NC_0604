@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "942919606039",
+    "firebase_url": "https://fithouchat-e669e.firebaseio.com",
+    "project_id": "fithouchat-e669e",
+    "storage_bucket": "fithouchat-e669e.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:942919606039:android:5c84155b4cdec72a",
+        "android_client_info": {
+          "package_name": "com.quangedm2202.fithou_chat"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "942919606039-21t9jftempiofp2bnll54jid8j1p9g4o.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.quangedm2202.fithou_chat",
+            "certificate_hash": "9182727b889b4be67d15f8b47ada66cb9ef17455"
+          }
+        },
+        {
+          "client_id": "942919606039-p9vvu1vpbbncsdpcpbug6ug8t4q364a4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDOvbb8hYQplL11ruvevRLg6ByvZkwNjd0"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "942919606039-p9vvu1vpbbncsdpcpbug6ug8t4q364a4.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
