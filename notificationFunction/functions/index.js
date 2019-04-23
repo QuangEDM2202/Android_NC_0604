@@ -43,29 +43,20 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 admin.initializeApp(functions.config().firebase);
-
-
 /*
  * 'OnWrite' works as 'addValueEventListener' for android. It will fire the function
  * everytime there is some item added, removed or changed from the provided 'database.ref'
  * 'sendNotification' is the name of the function, which can be changed according to
  * your requirement
  */
-
 exports.sendNotification = functions.database.ref('/notifications/{user_id}/{notification_id}').onWrite((change,context) => {
-
-
   /*
    * You can store values as variables from the 'database.ref'
    * Just like here, I've done for 'user_id' and 'notification'
    */
-
-
   const user_id = context.params.user_id;
   const notification_id = context.params.notification_id;
-
   console.log('We have a notification to : ', user_id);
-
   /*
    * Stops proceeding to the rest of the function if the entry is deleted from database.
    * If you want to work with what should happen when an entry is deleted, you can replace the
@@ -74,41 +65,29 @@ exports.sendNotification = functions.database.ref('/notifications/{user_id}/{not
  console.log('context.data before truoc: ', change.before.val());
  console.log('context.data after sau : ', change.after.val());
   if(!change.after.val()){
-
     return console.log('A Notification has been deleted from the database : ', notification_id);
-
   }
-
   /*
    * 'fromUser' query retreives the ID of the user who sent the notification
    */
-
   const fromUser = admin.database().ref(`/notifications/${user_id}/${notification_id}`).once('value');
-
   return fromUser.then(fromUserResult => {
-
     const from_user_id = fromUserResult.val().from;
-
     console.log('You have new notification from  : ', from_user_id);
-
     /*
      * The we run two queries at a time using Firebase 'Promise'.
      * One to get the name of the user who sent the notification
      * another one to get the devicetoken to the device we want to send notification to
      */
-
+	 // de query tu dau` den user name
     const userQuery = admin.database().ref(`Users/${from_user_id}/name`).once('value');
     const deviceToken = admin.database().ref(`/Users/${user_id}/device_token`).once('value');
-
     return Promise.all([userQuery, deviceToken]).then(result => {
-
       const userName = result[0].val();
       const token_id = result[1].val();
-
       /*
        * We are creating a 'payload' to create a notification to be sent.
        */
-
       const payload = {
         notification: {
           title : "New Friend Request",
@@ -128,99 +107,78 @@ exports.sendNotification = functions.database.ref('/notifications/{user_id}/{not
 
       return admin.messaging().sendToDevice(token_id, payload)
       });
-
     });
-
   });
 
 
+exports.sendNotificationMessage = functions.database.ref('/messages/{user_id}/{from_user_id}/{mes_id}').onWrite((change,context) => {
+  /*
+   * You can store values as variables from the 'database.ref'
+   * Just like here, I've done for 'user_id' and 'notification'
+   */
+   //nguoc tham so user_id vs from_user_id
+  const user_id = context.params.user_id;
+  const from_user_id = context.params.from_user_id;
+  const mes_id = context.params.mes_id;
+  console.log('We have a notification to : ', user_id);
+  console.log('From : ', from_user_id);
+  console.log('ID Mes : ', mes_id);
+  /*
+   * Stops proceeding to the rest of the function if the entry is deleted from database.
+   * If you want to work with what should happen when an entry is deleted, you can replace the
+   * line from "return console.log.... "
+   */
+ console.log('context.data before truoc: ', change.before.val());
+ console.log('context.data after sau : ', change.after.val());
+  if(!change.after.val()){
+    return console.log('A Notification has been deleted from the database : ', mes_id);
+  }
+  /*
+   * 'fromUser' query retreives the ID of the user who sent the notification
+   */
+  const lastmes_id = admin.database().ref(`/messages/${user_id}/${from_user_id}/${mes_id}`).once('value');
+  return lastmes_id.then(lastmes_idResult => {
+  	//lay dung roi from_user_id
+    const from_user_id_o_trong = lastmes_idResult.val().from;
+    console.log('You have new notification from  : ', from_user_id_o_trong);
+    const ndTinNhan = lastmes_idResult.val().message;
+    console.log('Noi dung tin nhan : ', ndTinNhan);
+    /*
+     * The we run two queries at a time using Firebase 'Promise'.
+     * One to get the name of the user who sent the notification
+     * another one to get the devicetoken to the device we want to send notification to
+     */
+	 // de query tu dau` den user name
+    const userQuery = admin.database().ref(`Users/${from_user_id_o_trong}/name`).once('value');
+    const deviceToken = admin.database().ref(`/Users/${from_user_id}/device_token`).once('value');
 
+    return Promise.all([userQuery, deviceToken]).then(result => {
+      const userName = result[0].val();
+      const token_id = result[1].val();
 
+      console.log('Gui den Token : ', token_id);
+      /*
+       * We are creating a 'payload' to create a notification to be sent.
+       */
+      const payload = {
+        notification: {
+          title : `"${userName} " has sent you a message!`,
+          body: `${ndTinNhan}`,
+          icon: "default",
+          click_action : "com.quangedm2202.fithou_chat_TARGET_NOTIFICATION"
+        },
+        data : {
+          //from_user_id : user_id
+          from_user_id : from_user_id
+        }
+      };
 
-// exports.sendNotification = functions.database.ref('/notifications/{user_id}/{notification_id}').onWrite((change,context) => {
+      /*
+       * Then using admin.messaging() we are sending the payload notification to the token_id of
+       * the device we retreived.
+       */
 
-
-//   /*
-//    * You can store values as variables from the 'database.ref'
-//    * Just like here, I've done for 'user_id' and 'notification'
-//    */
-
-
-//   const user_id = context.params.user_id;
-//   const notification_id = context.params.notification_id;
-
-//   console.log('We have a notification from : ', user_id);
-
-//   /*
-//    * Stops proceeding to the rest of the function if the entry is deleted from database.
-//    * If you want to work with what should happen when an entry is deleted, you can replace the
-//    * line from "return console.log.... "
-//    */
-//  console.log('context.data before truoc: ', change.before.val());
-//  console.log('context.data after sau : ', change.after.val());
-//   if(!change.after.val()){
-
-//     return console.log('A Notification has been deleted from the database : ', notification_id);
-
-//   }
-
-//   /*
-//    * 'fromUser' query retreives the ID of the user who sent the notification
-//    */
-
-//   const fromUser = admin.database().ref(`/notifications/${user_id}/${notification_id}`).once('value');
-
-//   return fromUser.then(fromUserResult => {
-
-//     const from_user_id = fromUserResult.val().from;
-
-//     console.log('You have new notification from  : ', from_user_id);
-
-    
-//      * The we run two queries at a time using Firebase 'Promise'.
-//      * One to get the name of the user who sent the notification
-//      * another one to get the devicetoken to the device we want to send notification to
-     
-
-//     const userQuery = admin.database().ref(`Users/${from_user_id}/name`).once('value');
-//     const deviceToken = admin.database().ref(`/Users/${user_id}/device_token`).once('value');
-
-//     return Promise.all([userQuery, deviceToken]).then(result => {
-
-//       const userName = result[0].val();
-//       const token_id = result[1].val();
-
-//       /*
-//        * We are creating a 'payload' to create a notification to be sent.
-//        */
-
-//       const payload = {
-//         notification: {
-//           title : "New Friend Request",
-//           body: `${userName} has sent you request`,
-//           icon: "default",
-//           click_action : "in.tvac.akshaye.lapitchat_TARGET_NOTIFICATION"
-//         },
-//         data : {
-//           from_user_id : from_user_id
-//         }
-//       };
-
-//       /*
-//        * Then using admin.messaging() we are sending the payload notification to the token_id of
-//        * the device we retreived.
-//        */
-
-//       return admin.messaging().sendToDevice(token_id, payload).then(response => {
-
-//         console.log('This was the notification Feature');
-//         return true;
-
-//       });
-
-//     });
-
-//   });
-
-// });
-
+      return admin.messaging().sendToDevice(token_id, payload)
+      });
+    });
+  });

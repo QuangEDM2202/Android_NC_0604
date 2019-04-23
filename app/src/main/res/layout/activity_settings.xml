@@ -4,8 +4,30 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorPrimaryDark"
-    tools:context="com.quangedm2202.fithou_chat.SettingsActivity">
+    tools:context=".SettingsActivity">
+
+    <include
+    android:id="@+id/register_toolbar"
+    layout="@layout/app_bar_layout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="8dp"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent">
+</include>
+
+    <com.skyfishjy.library.RippleBackground
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/content"
+        app:rb_color="#F8F8FF"
+        app:rb_radius="38dp"
+        app:rb_rippleAmount="8"
+        app:rb_duration="2000"
+        app:rb_scale="6">
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/setting_image"
@@ -13,26 +35,12 @@
         android:layout_height="200dp"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="80dp"
+        android:layout_below="@+id/register_toolbar"
         android:src="@drawable/default_avata" />
 
-    <Button
-        android:id="@+id/settings_image_btn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/settings_status"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="28dp"
-        android:text="Change Image" />
 
-    <Button
-        android:id="@+id/settings_status_btn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/settings_image_btn"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="26dp"
-        android:text="Change Status" />
+
 
     <TextView
         android:id="@+id/settings_display_name"
@@ -40,10 +48,12 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/setting_image"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="21dp"
+        android:layout_marginTop="10dp"
         android:text="Display Name"
-        android:textColor="@android:color/white"
-        android:textSize="24sp" />
+        android:textColor="@color/colorPurple"
+        android:textSize="16sp">
+    </TextView>
+
 
     <TextView
         android:id="@+id/settings_status"
@@ -53,6 +63,86 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="18dp"
         android:text="@string/default_status"
-        android:textColor="@android:color/white"
-        android:textSize="24sp" />
+        android:textColor="@color/colorPurple"
+        android:textSize="18sp" />
+
+    <ImageView
+        android:id="@+id/circle2"
+        android:layout_width="134dp"
+        android:layout_height="134dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginLeft="-100dp"
+        android:layout_marginBottom="50dp"
+        android:src="@drawable/circletransparant" />
+
+    <ImageView
+        android:id="@+id/circle3"
+        android:layout_width="182dp"
+        android:layout_height="182dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginRight="-80dp"
+        android:layout_marginBottom="-30dp"
+        android:src="@drawable/circle" />
+
+    <ImageView
+        android:id="@+id/circle4"
+        android:layout_width="134dp"
+        android:layout_height="134dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginRight="-50dp"
+        android:layout_marginBottom="-50dp"
+        android:layout_toLeftOf="@+id/circle3"
+        android:src="@drawable/circletransparant" />
+
+    <ScrollView
+        android:id="@+id/sv"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/settings_status">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="35dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginRight="35dp"
+                android:elevation="10dp">
+                <Button
+                    android:id="@+id/settings_image_btn"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_ui"
+                    android:text="CHANGE IMAGE"
+                    android:textAllCaps="false"
+                    android:textColor="@color/colorWhite" />
+                <Button
+                    android:id="@+id/settings_status_btn"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_ui1"
+                    android:layout_below="@+id/settings_image_btn"
+                    android:text="CHANGE STATUS"
+                    android:layout_marginTop="30dp"
+                    android:textAllCaps="false"
+                    android:textColor="@color/colorWhite" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="-20dp"
+                android:layout_marginRight="-20dp"
+                android:elevation="10dp">
+            </RelativeLayout>
+
+        </RelativeLayout>
+    </ScrollView>
+    </com.skyfishjy.library.RippleBackground>
+
 </RelativeLayout>

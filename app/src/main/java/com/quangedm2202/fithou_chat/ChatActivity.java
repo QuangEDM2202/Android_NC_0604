@@ -1,8 +1,10 @@
 package com.quangedm2202.fithou_chat;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
@@ -14,12 +16,16 @@ import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
@@ -30,11 +36,16 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
 
+import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -57,6 +68,7 @@ public class ChatActivity extends AppCompatActivity {
 
     private ImageButton mChatAddBtn;
     private ImageButton mChatSendBtn;
+    private ImageButton mFileSendBtn;
     private EditText mChatMessageView;
 
 
@@ -67,7 +79,9 @@ public class ChatActivity extends AppCompatActivity {
     private LinearLayoutManager mLinearLayout;
     private MessageAdapter mAdapter;
 
+
     private static final int TOTAL_ITEMS_TO_LOAD = 10;
+    private static final int SELECT_FILE_CODE = 5;
     private int mCurrentPage = 1;
 
     private static final int GALLERY_PICK = 1;
@@ -81,6 +95,22 @@ public class ChatActivity extends AppCompatActivity {
 
     private String mLastKey = "";
     private String mPrevKey = "";
+
+    private void showFileChooser() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("*/*");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+
+        try {
+            startActivityForResult(
+                    Intent.createChooser(intent, "Select a File to Upload"),
+                    SELECT_FILE_CODE);
+        } catch (android.content.ActivityNotFoundException ex) {
+            // Potentially direct the user to the Market with a Dialog
+            Toast.makeText(this, "Please install a File Manager.",
+                    Toast.LENGTH_SHORT).show();
+        }
+    }
 
 
     @Override
@@ -117,10 +147,13 @@ public class ChatActivity extends AppCompatActivity {
         mProfileImage = (CircleImageView) findViewById(R.id.custom_bar_image);
 
         mChatAddBtn = (ImageButton) findViewById(R.id.chat_add_btn);
+
+
+        mFileSendBtn = (ImageButton) findViewById(R.id.file_add_btn);
         mChatSendBtn = (ImageButton) findViewById(R.id.chat_send_btn);
         mChatMessageView = (EditText) findViewById(R.id.chat_message_view);
 
-        mAdapter = new MessageAdapter(messagesList);
+        mAdapter = new MessageAdapter(messagesList, getApplicationContext());
 
         mMessagesList = (RecyclerView) findViewById(R.id.messages_list);
         mRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.message_swipe_layout);
@@ -131,10 +164,13 @@ public class ChatActivity extends AppCompatActivity {
 
         mMessagesList.setAdapter(mAdapter);
 
+
         //------- IMAGE STORAGE ---------
         mImageStorage = FirebaseStorage.getInstance().getReference();
 
         mRootRef.child("Chat").child(mCurrentUserId).child(mChatUser).child("seen").setValue(true);
+
+//        downloadFile("files/ThucHanhNgay20190318.txt");
 
         loadMessages();
 
@@ -151,7 +187,7 @@ public class ChatActivity extends AppCompatActivity {
 
                 Picasso.get().load(thumb_image).placeholder(R.drawable.default_avata).into(mProfileImage);
 
-                if(online.equals("true")) {
+                if (online.equals("true")) {
 
                     mLastSeenView.setText("Online");
 
@@ -175,12 +211,19 @@ public class ChatActivity extends AppCompatActivity {
             }
         });
 
+        mFileSendBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showFileChooser();
+            }
+        });
+
 
         mRootRef.child("Chat").child(mCurrentUserId).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
-                if(!dataSnapshot.hasChild(mChatUser)){
+                if (!dataSnapshot.hasChild(mChatUser)) {
 
                     Map chatAddMap = new HashMap();
                     chatAddMap.put("seen", false);
@@ -194,7 +237,7 @@ public class ChatActivity extends AppCompatActivity {
                         @Override
                         public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
 
-                            if(databaseError != null){
+                            if (databaseError != null) {
 
                                 Log.d("CHAT_LOG", databaseError.getMessage().toString());
 
@@ -214,7 +257,6 @@ public class ChatActivity extends AppCompatActivity {
         });
 
 
-
         mChatSendBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -223,7 +265,6 @@ public class ChatActivity extends AppCompatActivity {
 
             }
         });
-
 
 
         mChatAddBtn.setOnClickListener(new View.OnClickListener() {
@@ -238,7 +279,6 @@ public class ChatActivity extends AppCompatActivity {
 
             }
         });
-
 
 
         mRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -258,13 +298,111 @@ public class ChatActivity extends AppCompatActivity {
 
     }
 
+    private void uploadFile(Uri fileURI) {
+        final String filePath = fileURI.getPath();
+        final String fileName = filePath.substring(filePath.lastIndexOf('/') + 1);
+        //if there is a file to upload
+        if (fileName != null) {
+            //displaying a progress dialog while upload is going on
+            final ProgressDialog progressDialog = new ProgressDialog(this);
+            progressDialog.setTitle("Uploading");
+            progressDialog.show();
+
+            StorageReference riversRef = mImageStorage.child("files/" + fileName);
+            riversRef.putFile(fileURI).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+
+                    final String current_user_ref = "messages/" + mCurrentUserId + "/" + mChatUser;
+                    final String chat_user_ref = "messages/" + mChatUser + "/" + mCurrentUserId;
+
+                    DatabaseReference user_message_push = mRootRef.child("messages")
+                            .child(mCurrentUserId).child(mChatUser).push();
+
+                    final String push_id = user_message_push.getKey();
+
+                    progressDialog.dismiss();
+                    if (task.isSuccessful()) {
+
+
+
+                        Map messageMap = new HashMap();
+                        messageMap.put("message", fileName);
+                        messageMap.put("seen", false);
+                        messageMap.put("type", "file");
+                        messageMap.put("time", ServerValue.TIMESTAMP);
+                        messageMap.put("from", mCurrentUserId);
+
+                        Map messageUserMap = new HashMap();
+                        messageUserMap.put(current_user_ref + "/" + push_id, messageMap);
+                        messageUserMap.put(chat_user_ref + "/" + push_id, messageMap);
+
+                        mChatMessageView.setText("");
+
+                        mRootRef.updateChildren(messageUserMap, new DatabaseReference.CompletionListener() {
+                            @Override
+                            public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+
+                                if (databaseError != null) {
+
+                                    Log.d("CHAT_LOG", databaseError.getMessage().toString());
+
+                                }
+
+                            }
+                        });
+
+
+                    }
+
+                    //and displaying a success toast
+                    Toast.makeText(getApplicationContext(), "File Uploaded ", Toast.LENGTH_LONG).show();
+                }
+            });
+        } else {
+            Toast.makeText(getApplicationContext(), "File Upload Failed ", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void downloadFile(String firebaseFilePath) {
+        StorageReference islandRef = mImageStorage.child(firebaseFilePath);
+
+        String fileName = firebaseFilePath.substring(firebaseFilePath.lastIndexOf('/') + 1);
+
+
+        File rootPath = new File(Environment.getExternalStorageDirectory(), "Downloads");
+        if (!rootPath.exists()) {
+            rootPath.mkdirs();
+        }
+
+        final File localFile = new File(rootPath, fileName);
+
+        islandRef.getFile(localFile).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                Toast.makeText(ChatActivity.this, "local tem file created  created " + localFile.toString(), Toast.LENGTH_LONG);
+                //  updateDb(timestamp,localFile.toString(),position);
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception exception) {
+                Toast.makeText(ChatActivity.this, "local tem file not created  created " + exception.toString(), Toast.LENGTH_LONG);
+                //Log.e("firebase ",";local tem file not created  created " +exception.toString());
+            }
+        });
+    }
 
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if(requestCode == GALLERY_PICK && resultCode == RESULT_OK){
+        if (requestCode == SELECT_FILE_CODE && resultCode == RESULT_OK) {
+            Uri uri = data.getData();
+            uploadFile(uri);
+        }
+
+        if (requestCode == GALLERY_PICK && resultCode == RESULT_OK) {
 
             Uri imageUri = data.getData();
 
@@ -277,13 +415,13 @@ public class ChatActivity extends AppCompatActivity {
             final String push_id = user_message_push.getKey();
 
 
-            StorageReference filepath = mImageStorage.child("message_images").child( push_id + ".jpg");
+            StorageReference filepath = mImageStorage.child("message_images").child(push_id + ".jpg");
 
             filepath.putFile(imageUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
                 @Override
                 public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
 
-                    if(task.isSuccessful()){
+                    if (task.isSuccessful()) {
 
                         String download_url = task.getResult().getDownloadUrl().toString();
 
@@ -305,7 +443,7 @@ public class ChatActivity extends AppCompatActivity {
                             @Override
                             public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
 
-                                if(databaseError != null){
+                                if (databaseError != null) {
 
                                     Log.d("CHAT_LOG", databaseError.getMessage().toString());
 
@@ -338,7 +476,7 @@ public class ChatActivity extends AppCompatActivity {
                 Messages message = dataSnapshot.getValue(Messages.class);
                 String messageKey = dataSnapshot.getKey();
 
-                if(!mPrevKey.equals(messageKey)){
+                if (!mPrevKey.equals(messageKey)) {
 
                     messagesList.add(itemPos++, message);
 
@@ -349,7 +487,7 @@ public class ChatActivity extends AppCompatActivity {
                 }
 
 
-                if(itemPos == 1) {
+                if (itemPos == 1) {
 
                     mLastKey = messageKey;
 
@@ -404,7 +542,7 @@ public class ChatActivity extends AppCompatActivity {
 
                 itemPos++;
 
-                if(itemPos == 1){
+                if (itemPos == 1) {
 
                     String messageKey = dataSnapshot.getKey();
 
@@ -414,11 +552,12 @@ public class ChatActivity extends AppCompatActivity {
                 }
 
                 messagesList.add(message);
-                mAdapter.notifyDataSetChanged();
+
 
                 mMessagesList.scrollToPosition(messagesList.size() - 1);
 
                 mRefreshLayout.setRefreshing(false);
+                mAdapter.notifyDataSetChanged();
 
             }
 
@@ -451,7 +590,7 @@ public class ChatActivity extends AppCompatActivity {
         //tin nhan trong text
         String message = mChatMessageView.getText().toString();
 
-        if(!TextUtils.isEmpty(message)){
+        if (!TextUtils.isEmpty(message)) {
 
             String current_user_ref = "messages/" + mCurrentUserId + "/" + mChatUser;
             String chat_user_ref = "messages/" + mChatUser + "/" + mCurrentUserId;
@@ -486,7 +625,7 @@ public class ChatActivity extends AppCompatActivity {
                 @Override
                 public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
 
-                    if(databaseError != null){
+                    if (databaseError != null) {
 
                         Log.d("CHAT_LOG", databaseError.getMessage().toString());
 

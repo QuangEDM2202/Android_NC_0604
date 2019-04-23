@@ -3,4 +3,18 @@
     <color name="colorPrimary">#673bb7</color>
     <color name="colorPrimaryDark">#512da7</color>
     <color name="colorAccent">#ff5021</color>
+    <color name="colorPrimary1">#008577</color>
+    <color name="colorPrimaryDark1">#00574B</color>
+    <color name="colorAccent1">#D81B60</color>
+    <color name="colorWhite">#ffffff</color>
+    <color name="colorPurple">#983CFF</color>
+    <color name="colorPurpleT">#64983cff</color>
+    <color name="colorBlue">#2FB4FF</color>
+    <color name="colorBlueT">#642fb4ff</color>
+    <color name="colorprofile">#1c89ac</color>
+    <color name="colorTool">#7961ff</color>
+    <color name="colorfacebook">#3b5998</color>
+    <color name="coloraa">#3ea4ff</color>
+    <color name="colorscreen">#617aff</color>
+    <color name="colormes">#7e7e7e</color>
 </resources>

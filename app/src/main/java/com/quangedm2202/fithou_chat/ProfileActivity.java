@@ -34,6 +34,7 @@ public class ProfileActivity extends AppCompatActivity {
 
     private DatabaseReference mUsersDatabase;
     private DatabaseReference mFriendReqDatabase;
+    private DatabaseReference mList_RequestDatabase;
 
     private DatabaseReference mFriendDatabase;
     private DatabaseReference mNotificationDatabase;
@@ -58,11 +59,13 @@ public class ProfileActivity extends AppCompatActivity {
         //khai bao database
         mUsersDatabase = FirebaseDatabase.getInstance().getReference().child("Users").child(user_id);
         mFriendReqDatabase = FirebaseDatabase.getInstance().getReference().child("Friend_req");
+        mList_RequestDatabase = FirebaseDatabase.getInstance().getReference().child("list_request");
         mFriendDatabase = FirebaseDatabase.getInstance().getReference().child("Friends");
         mNotificationDatabase = FirebaseDatabase.getInstance().getReference().child("notifications");
         mRootRef = FirebaseDatabase.getInstance().getReference();
 
         mCurrent_user = FirebaseAuth.getInstance().getCurrentUser();
+
 
         mProfileImage = (ImageView) findViewById(R.id.profile_image);
         mProfileName = (TextView) findViewById(R.id.profile_displayName);
@@ -169,7 +172,29 @@ public class ProfileActivity extends AppCompatActivity {
 
                 if (mCurrent_state.equals("not_friends")) {
 
+                    //them du lieu vao bang list_request
+                    // tao 1 node moi
+//                    DatabaseReference newRequestref = mRootRef.child("list_request").child(user_id).push();
+//                    // lay 1 key vua tao ra
+//                    String newRequestrefid = newRequestref.getKey();
+                    Map request_listMap = new HashMap();
+                    request_listMap.put("list_request/" + user_id + "/" + mCurrent_user.getUid()+ "/request", "sent");
+                    mRootRef.updateChildren(request_listMap, new DatabaseReference.CompletionListener() {
+                        @Override
+                        public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                            if (databaseError != null) {
+
+                                Toast.makeText(ProfileActivity.this, "EROR", Toast.LENGTH_SHORT).show();
+
+                            }
+                        }
+                    });
+
+
+
+                    // tao 1 node moi
                     DatabaseReference newNotificationref = mRootRef.child("notifications").child(user_id).push();
+                    // lay 1 key vua tao ra
                     String newNotificationId = newNotificationref.getKey();
 
                     HashMap<String, String> notificationData = new HashMap<>();
@@ -201,12 +226,28 @@ public class ProfileActivity extends AppCompatActivity {
                         }
                     });
 
+
                 }
 
 
                 // Huy loi moi ket ban
                 // Cancel Button
                 if (mCurrent_state.equals("req_sent")) {
+                    //xoa trong list friend request
+                    mList_RequestDatabase.child(mCurrent_user.getUid()).child(user_id).child("request").removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void aVoid) {
+
+                            mList_RequestDatabase.child(user_id).child(mCurrent_user.getUid()).removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
+                                @Override
+                                public void onSuccess(Void aVoid) {
+                                    Toast.makeText(ProfileActivity.this, "Cancel Status :Ok!", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+
+                        }
+                    });
+
 
                     mFriendReqDatabase.child(mCurrent_user.getUid()).child(user_id).removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override
@@ -226,10 +267,31 @@ public class ProfileActivity extends AppCompatActivity {
                         }
                     });
 
+
+
+
                 }
 
                 ////////// Nhan yeu cau ket ban/////////
                 if(mCurrent_state.equals("req_received")){
+
+                    //xoa trong list friend request
+                    mList_RequestDatabase.child(mCurrent_user.getUid()).child(user_id).child("request").removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void aVoid) {
+
+                            mList_RequestDatabase.child(user_id).child(mCurrent_user.getUid()).removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
+                                @Override
+                                public void onSuccess(Void aVoid) {
+                                    Toast.makeText(ProfileActivity.this, "Accept Status:Ok!", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+
+                        }
+                    });
+
+
+
 
                     final String currentDate = DateFormat.getDateTimeInstance().format(new Date());
 

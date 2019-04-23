@@ -5,19 +5,19 @@ package com.quangedm2202.fithou_chat;
  */
 
 public class Requests {
-    public String getRequest_type() {
-        return request_type;
+
+    public String request;
+    public Requests(String request) {
+        this.request = request;
+    }
+    public Requests(){
     }
 
-    public void setRequest_type(String request_type) {
-        this.request_type = request_type;
+    public String getRequest() {
+        return request;
     }
 
-    public String request_type;
-    public Requests() {
-    }
-
-    public Requests(String request_type) {
-        this.request_type = request_type;
+    public void setRequest(String request) {
+        this.request = request;
     }
 }

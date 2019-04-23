@@ -38,7 +38,7 @@ public class RequestsFragment extends Fragment {
 
     private View mMainView;
     private RecyclerView mFriendsList;
-    private Query mRequestsDatabase;
+    private DatabaseReference mRequestsDatabase;
     private DatabaseReference mUsersDatabase;
 
     private FirebaseAuth mAuth;
@@ -68,20 +68,23 @@ public class RequestsFragment extends Fragment {
         mCurrent_user_id = mAuth.getCurrentUser().getUid();
 
 
-        // dang sai querry phai querry lai
-        mRequestsDatabase =  FirebaseDatabase.getInstance().getReference().child("Friend_req").child(mCurrent_user_id).equalTo("request_type", "received");
+        // day la list friend request de hien ra
+        mRequestsDatabase =  FirebaseDatabase.getInstance().getReference().child("list_request").child(mCurrent_user_id);
         mRequestsDatabase.keepSynced(true);
-        mRequestsDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-               Log.d("TAG","ddd");
-            }
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
 
-            }
-        });
+
+//        mRequestsDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(DataSnapshot dataSnapshot) {
+//               Log.d("TAG","ddd");
+//            }
+//
+//            @Override
+//            public void onCancelled(DatabaseError databaseError) {
+//
+//            }
+//        });
 
 
         mUsersDatabase = FirebaseDatabase.getInstance().getReference().child("Users");
@@ -98,16 +101,16 @@ public class RequestsFragment extends Fragment {
     public void onStart() {
         super.onStart();
 
-        FirebaseRecyclerAdapter<Requests, RequestsFragment.RequestViewHolder> requestsRecyclerViewAdapter = new FirebaseRecyclerAdapter<Requests, RequestsFragment.RequestViewHolder>(
+        FirebaseRecyclerAdapter<Requests, RequestViewHolder> requestsRecyclerViewAdapter = new FirebaseRecyclerAdapter<Requests,RequestViewHolder>(
                 Requests.class,
                 R.layout.users_single_layout,
-                RequestsFragment.RequestViewHolder.class,
+                RequestViewHolder.class,
                 mRequestsDatabase
 
         ) {
             @Override
             protected void populateViewHolder(final RequestViewHolder viewHolder, Requests model, int position) {
-                viewHolder.setType(model.getRequest_type());
+                viewHolder.setType("I want to make friend with u");
                 final String list_user_id = getRef(position).getKey();
                 mUsersDatabase.child(list_user_id).addValueEventListener(new ValueEventListener() {
                     @Override
@@ -129,56 +132,41 @@ public class RequestsFragment extends Fragment {
                         viewHolder.mView.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
-
-                                CharSequence options[] = new CharSequence[]{"Open Profile", "Send message"};
-
+                                CharSequence options[] = new CharSequence[]{"Open Profile", "Accept","Delice"};
                                 final AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-
                                 builder.setTitle("Select Options");
                                 builder.setItems(options, new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialogInterface, int i) {
-
                                         //Click Event for each item.
                                         if(i == 0){
-
                                             Intent profileIntent = new Intent(getContext(), ProfileActivity.class);
                                             profileIntent.putExtra("user_id", list_user_id);
                                             startActivity(profileIntent);
-
                                         }
-
                                         if(i == 1){
-
                                             Intent chatIntent = new Intent(getContext(), ChatActivity.class);
                                             chatIntent.putExtra("user_id", list_user_id);
                                             chatIntent.putExtra("user_name", userName);
                                             startActivity(chatIntent);
-
                                         }
-
+                                        if(i == 2){
+                                            Intent chatIntent = new Intent(getContext(), ChatActivity.class);
+                                            chatIntent.putExtra("user_id", list_user_id);
+                                            chatIntent.putExtra("user_name", userName);
+                                            startActivity(chatIntent);
+                                        }
                                     }
                                 });
-
                                 builder.show();
-
                             }
                         });
-
-
                     }
-
                     @Override
                     public void onCancelled(DatabaseError databaseError) {
-
                     }
                 });
-
-
-
-
             }
-
         };
         mFriendsList.setAdapter(requestsRecyclerViewAdapter);
     }
@@ -186,13 +174,13 @@ public class RequestsFragment extends Fragment {
 
     public static class RequestViewHolder extends RecyclerView.ViewHolder {
 
-        static View mView;
+        View mView;
         public RequestViewHolder(View itemView) {
             super(itemView);
             mView = itemView;
         }
 
-        public static void setType(String type){
+        public void setType(String type){
             TextView userStatusView = (TextView) mView.findViewById(R.id.user_single_status);
             userStatusView.setText(type);
         }

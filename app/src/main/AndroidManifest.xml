@@ -15,7 +15,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity">
+        <meta-data
+            android:name="com.facebook.sdk.ApplicationId"
+            android:value="@string/facebook_app_id" />
+
+        <activity android:name=".SplashScreen">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -23,13 +27,16 @@
             </intent-filter>
         </activity>
         <activity android:name=".StartActivity" />
+        <activity android:name=".MainActivity" />
         <activity
             android:name=".RegisterActivity"
             android:parentActivityName=".StartActivity" />
         <activity
             android:name=".LoginActivity"
             android:parentActivityName=".StartActivity" />
-        <activity android:name=".SettingsActivity" />
+        <activity
+            android:name=".SettingsActivity"
+            android:parentActivityName=".MainActivity" />
         <activity
             android:name=".StatusActivity"
             android:parentActivityName=".SettingsActivity" />
@@ -40,11 +47,11 @@
             android:name=".UsersActivity"
             android:parentActivityName=".MainActivity" />
         <activity android:name=".ProfileActivity">
-        <intent-filter>
-            <action android:name="com.quangedm2202.fithou_chat_TARGET_NOTIFICATION" />
+            <intent-filter>
+                <action android:name="com.quangedm2202.fithou_chat_TARGET_NOTIFICATION" />
 
-            <category android:name="android.intent.category.DEFAULT" />
-        </intent-filter>
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
         </activity>
 
         <service android:name=".FirebaseMessagingService">
@@ -53,8 +60,13 @@
             </intent-filter>
         </service>
 
-        <activity android:name=".ChatActivity"
-            android:parentActivityName=".MainActivity"></activity>
+        <activity
+            android:name=".ChatActivity"
+            android:parentActivityName=".MainActivity" />
+        <activity
+            android:name=".ForgotPassword"
+            android:parentActivityName=".LoginActivity" />
+        <!--<activity android:name=".SplashScreen"></activity>-->
     </application>
 
 </manifest>

@@ -105,7 +105,7 @@ public class ChatsFragment extends Fragment {
 
                 final String list_user_id = getRef(i).getKey();
 
-                //tin nhan cuoi cung
+                //tin nhan cuoi cung querry .
                 Query lastMessageQuery = mMessageDatabase.child(list_user_id).limitToLast(1);
 
                 lastMessageQuery.addChildEventListener(new ChildEventListener() {

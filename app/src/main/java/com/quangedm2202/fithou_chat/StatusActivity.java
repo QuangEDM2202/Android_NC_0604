@@ -1,6 +1,7 @@
 package com.quangedm2202.fithou_chat;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -73,6 +74,9 @@ public class StatusActivity extends AppCompatActivity {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         if(task.isSuccessful()){
+                            Toast.makeText(getApplicationContext(),"Status success! Ok",Toast.LENGTH_LONG).show();
+                            Intent intent = new Intent(StatusActivity.this,SettingsActivity.class);
+                            startActivity(intent);
                             mProgress.dismiss();
                         }
                         else{

@@ -34,17 +34,30 @@
         android:layout_marginTop="10dp"
         android:text="User default Status" />
 
-    <ImageView
+    <!--<ImageView-->
+        <!--android:id="@+id/user_single_online_icon"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_above="@+id/user_single_status"-->
+        <!--android:layout_alignParentEnd="true"-->
+        <!--android:layout_alignParentTop="true"-->
+        <!--android:layout_marginEnd="138dp"-->
+        <!--android:layout_marginTop="11dp"-->
+        <!--android:layout_toEndOf="@+id/user_single_status"-->
+        <!--android:visibility="invisible"-->
+        <!--app:srcCompat="@drawable/icon_online1" />-->
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:layout_width="15dp"
+        android:layout_height="15dp"
+        app:civ_border_width="10dp"
+        app:civ_border_color="#05df29"
         android:id="@+id/user_single_online_icon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/user_single_status"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginEnd="138dp"
-        android:layout_marginTop="11dp"
-        android:layout_toEndOf="@+id/user_single_status"
         android:visibility="invisible"
-        app:srcCompat="@drawable/icon_online1" />
+        android:src="@mipmap/ic_launcher"
+        android:layout_below="@id/user_single_status"
+        android:layout_marginTop="1dp"
+        android:layout_marginLeft="-15dp"
+        android:layout_toRightOf="@id/user_single_image"
+        android:layout_toEndOf="@id/user_single_image"/>
 
 </RelativeLayout>

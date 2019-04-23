@@ -59,8 +59,12 @@ public class FriendsFragment extends Fragment {
         mMainView = inflater.inflate(R.layout.fragment_friends, container, false);
 
         mFriendsList = (RecyclerView) mMainView.findViewById(R.id.friends_list);
-        mAuth = FirebaseAuth.getInstance();
 
+        mFriendsList.setHasFixedSize(true);
+        mFriendsList.setLayoutManager(new LinearLayoutManager(getContext()));
+
+
+        mAuth = FirebaseAuth.getInstance();
         mCurrent_user_id = mAuth.getCurrentUser().getUid();
 
         mFriendsDatabase = FirebaseDatabase.getInstance().getReference().child("Friends").child(mCurrent_user_id);
@@ -72,8 +76,7 @@ public class FriendsFragment extends Fragment {
         mUsersDatabase.keepSynced(true);
 
 
-        mFriendsList.setHasFixedSize(true);
-        mFriendsList.setLayoutManager(new LinearLayoutManager(getContext()));
+
 
         // Inflate the layout for this fragment
         return mMainView;
